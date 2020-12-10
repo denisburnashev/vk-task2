@@ -15,17 +15,38 @@ class VK_user:
             'v': self.version
         }
 
-    def both_friends(self):
-        both_friends_url = self.url + 'friends.getMutual'
-        both_friends_param = {
-            'source_uid': 14869974,
-            'target_uid': 492888196
+    def get_friends(self, user_id=None):
+        friend_list = []
+        if user_id is None:
+            user_id = self.owner_id
+        friends_url = self.url + 'friends.get'
+        friends_param = {
+            'count': 500,
+            'user_id': user_id,
+            'fields': 'nickname'
         }
-        res = requests.get(both_friends_url, params={**self.params, **both_friends_param})
+        res = requests.get(friends_url, params={**self.params, **friends_param})
         res = res.json()
-        pprint(res)
+        friends_list = res['response']['items']
+        for friend in friends_list:
+            friend_list.append(friend)
+        return friend_list
+
+    def __and__(self, other_user):
+        user1_input = input('Введите id 1 пользователя:\n')
+        user1 = other_user.get_friends(user1_input)
+        user2_input = input('Введите id 2 пользователя:\n')
+        user2 = other_user.get_friends(user2_input)
+        print('Общие друзья:')
+        for friend_user1 in user1:
+            for friend_user2 in user2:
+                if friend_user1['id'] == friend_user2['id']:
+                    print('Фамилия, Имя:', friend_user1['last_name'], friend_user1['first_name'], 'id пользователя:', friend_user1['id'])
+
 
 
 
 user1 = VK_user(token, '5.126')
-print(user1.both_friends())
+user2 = VK_user(token, '5.126')
+
+user1 & user2
